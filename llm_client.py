@@ -32,3 +32,16 @@ class LLMClient:
 
 
 llm_client = LLMClient()
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    async def main():
+        reply = await llm_client.chat(
+            system_prompt="You are a security analyst.",
+            user_prompt="Summarize this event in one sentence: failed SSH login from 1.2.3.4 to 10.0.0.1",
+        )
+        print(reply)
+
+    asyncio.run(main())
