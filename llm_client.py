@@ -14,7 +14,6 @@ class LLMClient:
         self.model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
         self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", 4096))
         self.temperature = float(os.getenv("LLM_TEMPERATURE", 0.2))
-
     async def chat(self, system_prompt: str, user_prompt: str) -> str:
         response = await self._client.chat.completions.create(
             model=self.model,
