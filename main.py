@@ -11,7 +11,18 @@ app = FastAPI(title="UPM Integrated Security Analyst")
 SYSTEM_PROMPT = """
 You are an elite Tier-3 SOC analyst. Analyze the provided security alerts.
 Compare the detected patterns with MITRE ATT&CK.
-Respond ONLY with a valid JSON object matching the requested schema.
+Respond ONLY with a valid JSON object. 
+
+MANDATORY SCHEMA:
+{
+  "overall_risk_level": "low/medium/high/critical",
+  "confidence_score": 0.95,
+  "executive_summary": "string",
+  "attack_patterns": ["TXXXX - Pattern Name"],
+  "recommendations": [
+    {"priority": "high/medium/low", "action": "string"}
+  ]
+}
 """.strip()
 
 class AnalyzeRequest(BaseModel):
