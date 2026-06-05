@@ -4,44 +4,36 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 class LLMClient:
-    def __init__(self) -> None:
-        self._client = AsyncOpenAI(
-            api_key=os.environ["GROQ_API_KEY"],
-            base_url=os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1"),
+    def __init__(self):
+        api_key = os.getenv("GROQ_API_KEY")
+        base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
+        model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
+        
+        if not api_key:
+            # Fail fast with clear message
+            raise RuntimeError("GROQ_API_KEY not set in environment. Check your .env file!")
+            
+  
+        self.client = AsyncOpenAI(
+            api_key=api_key, 
+            base_url=base_url,
+            timeout=10.0,      
+            max_retries=0      
         )
-        self.model = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
-        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", 4096))
-        self.temperature = float(os.getenv("LLM_TEMPERATURE", 0.2))
-    async def chat(self, system_prompt: str, user_prompt: str) -> str:
-        response = await self._client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt},
-            ],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
-        content = response.choices[0].message.content
-        if not content:
-            raise RuntimeError("Model returned an empty response")
-        return content
+        
+        self.model = model
+        self.temp = float(os.getenv("LLM_TEMPERATURE", "0.2"))
+        self.max_tokens = int(os.getenv("LLM_MAX_TOKENS", "2048"))
 
+    async def chat(self, system, user):
+        out = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role":"system","content":system},
+                      {"role":"user","content":user}],
+            temperature=self.temp,
+            max_tokens=self.max_tokens
+        )
+        return out.choices[0].message.content
 
 llm_client = LLMClient()
-
-
-if __name__ == "__main__":
-    import asyncio
-    from main import SYSTEM_PROMPT
-
-    async def main():
-        reply = await llm_client.chat(
-            system_prompt=SYSTEM_PROMPT,
-            user_prompt="failed SSH login from 1.2.3.4 to 10.0.0.1",
-        )
-        print(reply)
-
-    asyncio.run(main())
